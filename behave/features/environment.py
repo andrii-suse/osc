@@ -21,7 +21,7 @@ def before_scenario(context, scenario):
 
 
 def after_scenario(context, scenario):
-    if scenario.status == Status.failed:
+    if scenario.status == Status.failed and not os.environ['OSC_BEHAVE_SUPPRESS_SERVER_LOGS']:
         # the scenario has failed, dump server logs
         print("===== BEGIN: server logs ======")
         proc = context.podman.container.exec(["bash", "-c", "tail -n +1 /srv/www/obs/api/log/*.log /srv/obs/log/*.log /var/log/gitea/*.log"])

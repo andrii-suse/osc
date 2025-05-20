@@ -19,11 +19,26 @@ class PullRequestListCommand(osc.commandline_git.GitObsCommand):
             default="open",
             help="State of the pull requests (default: open)",
         )
+        self.add_argument(
+            "--format",
+            choices=["text", "json"],
+            default="text",
+            help="Output format (default: open)",
+        )
+        self.add_argument(
+            "--json",
+            action="store_true",
+            help="Print output in json",
+        )
 
     def run(self, args):
         from osc import gitea_api
+        from osc.output.formatter_creator import FormatterCreator
 
         self.print_gitea_settings()
+
+        formatter = FormatterCreator().formatter_from_args(args)
+        formatter.start()
 
         total_entries = 0
         for owner, repo in args.owner_repo:
@@ -32,8 +47,6 @@ class PullRequestListCommand(osc.commandline_git.GitObsCommand):
             if pr_obj_list:
                 total_entries += len(pr_obj_list)
                 pr_obj_list.sort()
-                for pr_obj in pr_obj_list:
-                    print(pr_obj.to_human_readable_string())
-                    print("", file=sys.stderr)
+                formatter.format_list(pr_obj_list)
 
-        print(f"Total entries: {total_entries}", file=sys.stderr)
+        formatter.finish(f"Total entries: {total_entries}")
